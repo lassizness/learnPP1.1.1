@@ -13,41 +13,44 @@ public class Util {
     private static String pathDb = "jdbc:postgresql://localhost:5432/" + selectDb + "?user=" + loginDb + "&password=" + paswwdDb;
     //не красиво, но и хрен с ним.
 
-    public static void openConnection() {
+    public static boolean openConnection() {
         try {
             Class.forName("org.postgresql.Driver");
             connectPost = DriverManager.getConnection(pathDb);
             System.out.println("Подключение с бд успешно установленно.");
+            return true;
         } catch (Exception e) {
             System.out.println("Подключение с бд не было установленно.");
             System.out.println(e);
         }
+        return false;
     }
 
-    public static void closeConnection() {
+    public static boolean closeConnection() {
         try {
             connectPost.close();
             System.out.println("Соединение с бд закрыто.");
+            return true;
         } catch (Exception e) {
             System.out.println("Ошибка закрытия соединения с бд.");
             System.out.println(e);
         }
+        return false;
     }
 
     public static String sendQuery(String query) throws SQLException {
         String result = "";
-
         Statement statement = connectPost.createStatement();
-
         if (query != null && query.length() != 0) {
-            switch (query.charAt(0)) {
 
-                case 's':
+            switch (query.charAt(0)) {
+                case 'S':
                     try {
                         ResultSet res = statement.executeQuery(query);
                         while (res.next()) {
-                            result += res.toString();
-                        }
+                            result +=res.getString("name") + ":" + res.getString("lastname") + ":" + res.getString("age") + "\n";
+   }
+
                     } catch (Exception e) {
                         return e.getMessage();
                     }
@@ -60,7 +63,9 @@ public class Util {
                         return e.getMessage();
                     }
                     break;
+
             }
+
         } else {
             return "Empty query.";
         }
@@ -70,6 +75,7 @@ public class Util {
         } else {
             query = "noresultata";
         }
+
         return query;
 
     }

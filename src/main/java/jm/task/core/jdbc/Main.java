@@ -1,92 +1,83 @@
 package jm.task.core.jdbc;
 
-import jm.task.core.jdbc.util.Util;
+import jm.task.core.jdbc.model.User;
+import jm.task.core.jdbc.service.UserService;
+import jm.task.core.jdbc.service.UserServiceImpl;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.Field;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Stream;
 
 public class Main {
     //ArrayList <String> queryList= new ArrayList<>();
     static HashMap<String, String> queryList = new HashMap<>();
+    // private static UserDaoJDBCImpl userService = new UserDaoJDBCImpl();
+    private final static UserService userService = new UserServiceImpl();
 
-    public static void main(String[] args) throws IOException, SQLException {
+
+    public static void main(String[] args) throws IOException, SQLException, IllegalAccessException {
         BufferedReader scaner = new BufferedReader(new InputStreamReader(System.in));
-        Util.openConnection();
-        System.out.println(Util.sendQuery(queryList.get("countUser")));
-        Util.closeConnection();
-
         queryList = initializationListQuery(queryList);
         int numberCommand = 0;
         while (true) {
             switch (numberCommand) {
                 case 1:
-                    Util.openConnection();
-                    try {
-                        System.out.println(Util.sendQuery(queryList.get("createTable")));
-                    } catch (Exception e) {
-                        System.out.println(e);
-                    }
-                    Util.closeConnection();
-                    numberCommand=0;
+                    userService.createUsersTable();
+                    System.out.println("Таблица Users создана.");
+                    numberCommand = 0;
                     break;
                 case 2:
-                    Util.openConnection();
-                    try {
-                        System.out.println(Util.sendQuery(queryList.get("dropTable")));
-                    } catch (Exception e) {
-                        System.out.println(e);
-                    }
-                    Util.closeConnection();
-                    numberCommand=0;
+                    userService.dropUsersTable();
+                    System.out.println("Таблица Users удалена.");
+                    numberCommand = 0;
                     break;
                 case 3:
-                    Util.openConnection();
-                    try {
-                        System.out.println(Util.sendQuery(queryList.get("clearTable")));
-                    } catch (Exception e) {
-                        System.out.println(e);
-                    }
-                    Util.closeConnection();
-                    numberCommand=0;
+                    userService.cleanUsersTable();
+                    System.out.println("Таблица Users очищена.");
+                    numberCommand = 0;
                     break;
                 case 4:
-                    Util.openConnection();
-                    try {
-                        System.out.println(Util.sendQuery(queryList.get("allUser")));
-                    } catch (Exception e) {
-                        System.out.println(e);
+                    List<User> userList = userService.getAllUsers();
+                    System.out.println("name" + "\t\t" + "lastname" + "\t\t" + "age");
+                    for (User user : userList) {
+                        for (Field field : user.getClass().getDeclaredFields()) {
+                            field.setAccessible(true);
+                            Object value = field.get(user);
+                            if (value != null) {
+                                System.out.print(value + "\t\t");
+                            }
+                        }
+                        System.out.println("");
                     }
-                    Util.closeConnection();
-                    numberCommand=0;
+                    numberCommand = 0;
                     break;
                 case 5:
-                    Util.openConnection();
-                    try {
-                        System.out.println(Util.sendQuery(queryList.get("delUser")));
-                    } catch (Exception e) {
-                        System.out.println(e);
+
+                    System.out.println("1. Удаление по id");
+                    switch (Integer.parseInt(scaner.readLine())) {
+                        case 1:
+                            System.out.print("Введите id для удаления:");
+                            userService.removeUserById(Integer.parseInt(scaner.readLine()));
+                            break;
                     }
-                    Util.closeConnection();
-                    numberCommand=0;
+                    System.out.println("Запись удалена.");
+                    numberCommand = 0;
                     break;
                 case 6:
                     System.out.println("Введите количество заносимых в таблицу записей: ");
-                    scaner.readLine();
-                    Util.openConnection();
-                    for (int i = 0; i < Integer.parseInt(scaner.readLine()); i++) {
-                        try {
-                            System.out.println(Util.sendQuery(queryList.get("addUser") + "('" + genName() + "','" + genLastName() + "'," + getRandomAge() + ")"));
-                        } catch (Exception e) {
-                            System.out.println(e);
-                        }
+                    int count = 0;
+                    count = Integer.parseInt(scaner.readLine());
+                    for (int i = 0; i < count; i++) {
+                        userService.saveUser(genName(), genLastName(), (byte) getRandomAge());
                     }
-                    Util.closeConnection();
-                    numberCommand=0;
+                    numberCommand = 0;
                     break;
                 case 7:
                     System.exit(0);
@@ -104,19 +95,14 @@ public class Main {
                     break;
             }
         }
-
-
-        //System.out.println(genName() + " " + genLastName());
-
-
     }
 
     public static HashMap initializationListQuery(HashMap Map) {
         Map.put("createTable", "CREATE TABLE IF NOT EXISTS Users (id SERIAL PRIMARY KEY, name varchar(255), lastname varchar(255), age smallint);");
         Map.put("dropTable", "DROP TABLE IF EXISTS Users;");
-        Map.put("clearTable", "TRUNCATE TABLE IF EXISTS Users;");
-        Map.put("addUser", "INSERT INTO Users (name, lastname, age) VALUES");
-        Map.put("delUser", "DELETE FROM Users WHERE");
+        Map.put("clearTable", "TRUNCATE TABLE Users;");
+        Map.put("addUser", "INSERT INTO Users (name, lastname, age) VALUES ");
+        Map.put("delUser", "DELETE FROM Users WHERE ");
         Map.put("allUser", "SELECT * FROM Users;");
         Map.put("countUser", "SELECT count(*) FROM Users;");
         return Map;
@@ -132,8 +118,6 @@ public class Main {
         return Stream.of(Name.values())
                 .skip(new Random().nextInt(Name.values().length))
                 .findFirst().get().toString();
-        //Name randomName= Stream.of(Name.values()).skip(new Random().nextInt(Name.values().length)).findFirst().get();
-        //return randomName.toString();
     }
 
     public static String genLastName() {
@@ -151,4 +135,29 @@ public class Main {
     public static int getRandomAge() {
         return ThreadLocalRandom.current().nextInt(18, 41);
     }
+
+    public static String getQueryList(String key) {
+        return queryList.get(key);
+    }
+
+    public static String[][] splitString(String str, String split1, String split2) {
+
+        if (str != "") {
+            String[] rows = str.split(split1);
+            String[][] arr = new String[rows.length][];
+            for (int i = 0; i < rows.length; i++) {
+                String[] cols = rows[i].split(split2);
+                arr[i] = new String[cols.length];
+                for (int j = 0; j < cols.length; j++) {
+                    arr[i][j] = cols[j];
+                }
+            }
+            return arr;
+        } else {
+            String[][] arr = new String[0][];
+            return arr;
+        }
+
+    }
+
 }

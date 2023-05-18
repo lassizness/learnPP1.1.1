@@ -4,6 +4,7 @@ import jm.task.core.jdbc.service.UserServiceImpl;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class UserServiceTest {
@@ -42,6 +43,7 @@ public class UserServiceTest {
             userService.saveUser(testName, testLastName, testAge);
 
             User user = userService.getAllUsers().get(0);
+            //User user = userService.getAllUsers().get(userService.getAllUsers().size()-1);
 
             if (!testName.equals(user.getName())
                     || !testLastName.equals(user.getLastName())
@@ -52,6 +54,7 @@ public class UserServiceTest {
 
         } catch (Exception e) {
             Assert.fail("Во время тестирования сохранения пользователя произошло исключение\n" + e);
+
         }
     }
 
@@ -91,7 +94,10 @@ public class UserServiceTest {
             userService.saveUser(testName, testLastName, testAge);
             userService.cleanUsersTable();
 
-            if (userService.getAllUsers().size() != 0) {
+            List<User> userList = new ArrayList<>();
+            userList.addAll(userService.getAllUsers());
+
+            if (userList.size() != 0) {
                 Assert.fail("Метод очищения таблицы пользователей реализован не корректно");
             }
         } catch (Exception e) {
