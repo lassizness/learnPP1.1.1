@@ -1,6 +1,7 @@
 import jm.task.core.jdbc.model.User;
 import jm.task.core.jdbc.service.UserService;
 import jm.task.core.jdbc.service.UserServiceImpl;
+import jm.task.core.jdbc.Main;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -14,9 +15,9 @@ public class UserServiceTest {
     private final String testLastName = "Ivanov";
     private final byte testAge = 5;
 
-
     @Test
     public void dropUsersTable() {
+
         try {
             userService.dropUsersTable();
             userService.dropUsersTable();
@@ -42,7 +43,11 @@ public class UserServiceTest {
             userService.createUsersTable();
             userService.saveUser(testName, testLastName, testAge);
 
-            User user = userService.getAllUsers().get(0);
+            //User user = userService.getAllUsers().get(0);
+            User user=userService.getAllUsers().get(0);
+
+            //UsersEntity usersEntity = new UsersEntity();
+            //User user = new User(usersEntity.getName(), usersEntity.getLastname(), usersEntity.getAge());
             //User user = userService.getAllUsers().get(userService.getAllUsers().size()-1);
 
             if (!testName.equals(user.getName())

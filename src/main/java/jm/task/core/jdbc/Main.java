@@ -16,16 +16,28 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Stream;
 
 public class Main {
-    //ArrayList <String> queryList= new ArrayList<>();
     static HashMap<String, String> queryList = new HashMap<>();
-    // private static UserDaoJDBCImpl userService = new UserDaoJDBCImpl();
+    private static boolean switcher = false;//true для теста hibernate, false jbdc.
     private final static UserService userService = new UserServiceImpl();
+    static Main main = new Main();
 
 
     public static void main(String[] args) throws IOException, SQLException, IllegalAccessException {
         BufferedReader scaner = new BufferedReader(new InputStreamReader(System.in));
         queryList = initializationListQuery(queryList);
         int numberCommand = 0;
+
+        System.out.println("Выберите метод работы с бд:\n" +
+                "1.JDBC\n" +
+                "2.HIBERNATE\n");
+        System.out.print("Укажите вариант подключения:");
+
+        if (Integer.parseInt(scaner.readLine()) == 1) {
+            main.setSwitcher(false);
+        } else {
+            main.setSwitcher(true);
+        }
+
         while (true) {
             switch (numberCommand) {
                 case 1:
@@ -100,7 +112,7 @@ public class Main {
     public static HashMap initializationListQuery(HashMap Map) {
         Map.put("createTable", "CREATE TABLE IF NOT EXISTS Users (id SERIAL PRIMARY KEY, name varchar(255), lastname varchar(255), age smallint);");
         Map.put("dropTable", "DROP TABLE IF EXISTS Users;");
-        Map.put("clearTable", "TRUNCATE TABLE Users;");
+        Map.put("clearTable", "TRUNCATE TABLE  IF EXISTS Users;");
         Map.put("addUser", "INSERT INTO Users (name, lastname, age) VALUES ");
         Map.put("delUser", "DELETE FROM Users WHERE ");
         Map.put("allUser", "SELECT * FROM Users;");
@@ -160,4 +172,11 @@ public class Main {
 
     }
 
+    public void setSwitcher(boolean switcher) {
+        this.switcher = switcher;
+    }
+
+    public boolean getSwitcher() {
+        return switcher;
+    }
 }

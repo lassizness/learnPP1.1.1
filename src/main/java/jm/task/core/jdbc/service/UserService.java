@@ -2,6 +2,7 @@ package jm.task.core.jdbc.service;
 
 import jm.task.core.jdbc.model.User;
 
+import javax.transaction.Transactional;
 import java.sql.SQLException;
 import java.util.List;
 

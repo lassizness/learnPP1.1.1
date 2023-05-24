@@ -1,7 +1,9 @@
 package jm.task.core.jdbc.util;
 
-/*import java.sql.Connection;
-import java.sql.DriverManager;*/
+import jm.task.core.jdbc.entity.UsersEntity;
+import org.hibernate.SessionFactory;
+import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
+import org.hibernate.cfg.Configuration;
 
 import java.sql.*;
 
@@ -12,6 +14,7 @@ public class Util {
     private static String selectDb = "learnpp1";
     private static String pathDb = "jdbc:postgresql://localhost:5432/" + selectDb + "?user=" + loginDb + "&password=" + paswwdDb;
     //не красиво, но и хрен с ним.
+    private static SessionFactory sessionFactory;//сессия кибернейта
 
     public static boolean openConnection() {
         try {
@@ -78,6 +81,21 @@ public class Util {
 
         return query;
 
+    }
+
+    public static SessionFactory getSessionFactory() {
+        if (sessionFactory == null) {
+            try {
+                Configuration configuration = new Configuration().configure();
+                configuration.addAnnotatedClass(UsersEntity.class);
+                StandardServiceRegistryBuilder builder = new StandardServiceRegistryBuilder().applySettings(configuration.getProperties());
+                sessionFactory = configuration.buildSessionFactory(builder.build());
+
+            } catch (Exception e) {
+                System.out.println("Исключение!" + e);
+            }
+        }
+        return sessionFactory;
     }
 
 }
